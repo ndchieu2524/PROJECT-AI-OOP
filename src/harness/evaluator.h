@@ -44,3 +44,29 @@ public:
         };
     }
 };
+
+class FunctionalEvaluator : public Evaluator {
+private:
+    std::string trim(const std::string& str) {
+        size_t first = str.find_first_not_of(" \t\n\r");
+        if (std::string::npos == first) return "";
+        size_t last = str.find_last_not_of(" \t\n\r");
+        return str.substr(first, (last - first + 1));
+    }
+
+public:
+    EvalResult evaluate(const BenchmarkTask& task, 
+                        const std::string& actual_output, 
+                        const Trajectory& trajectory) override {
+        std::string expected_clean = trim(task.expected_output);
+        std::string actual_clean = trim(actual_output);
+
+        bool match = (actual_clean.find(expected_clean) != std::string::npos);
+
+        return {
+            match,
+            match ? 1.0 : 0.0,
+            match ? "Kết quả chức năng chính xác" : "Kết quả chức năng SAI!"
+        };
+    }
+};

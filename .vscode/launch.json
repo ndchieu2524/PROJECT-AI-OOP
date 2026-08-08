@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/MSI/Downloads/AgentAI/src",
-      "program": "c:/Users/MSI/Downloads/AgentAI/src/build/Debug/outDebug",
+      "cwd": "c:/Users/MSI/Downloads/AgentAI",
+      "program": "c:/Users/MSI/Downloads/AgentAI/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [

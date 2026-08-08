@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <fstream>
+#include <iostream>
 #include <sstream>
 
 // Cấu trúc lưu vết từng bước chạy ReAct của Agent
@@ -75,5 +77,17 @@ public:
         ss << "  ]\n";
         ss << "}";
         return ss.str();
+    }
+
+    bool saveToJsonFile(const std::string& filepath) const {
+        std::ofstream file(filepath);
+        if (!file.is_open()) {
+            std::cerr << "[ERROR] Khong the mo file de ghi: " << filepath << std::endl;
+            return false;
+        }
+        file << toJsonString();
+        file.close();
+        std::cout << "[HARNESS] Da luu trajectory vao file: " << filepath << std::endl;
+        return true;
     }
 };
