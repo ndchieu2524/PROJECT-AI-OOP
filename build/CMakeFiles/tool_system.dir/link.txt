@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtool_system.a CMakeFiles/tool_system.dir/tool_registry.cpp.o CMakeFiles/tool_system.dir/exec_tool.cpp.o CMakeFiles/tool_system.dir/file_tool.cpp.o CMakeFiles/tool_system.dir/calculator_tool.cpp.o
+/usr/bin/ranlib libtool_system.a
