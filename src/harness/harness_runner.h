@@ -13,6 +13,25 @@ struct BenchmarkReport {
     double success_rate{0.0};
     double average_score{0.0};
     long long total_latency_ms{0};
+    bool saveToJsonFile(const string& filepath) const {
+        ofstream file(filepath);
+        if (!file.is_open()) {
+            cerr << "[LỖI] Không thể lưu file báo cáo tổng hợp: " << filepath << endl;
+            return false;
+        }
+
+        file << "{\n";
+        file << "  \"total_tasks\": " << total_tasks << ",\n";
+        file << "  \"passed_tasks\": " << passed_tasks << ",\n";
+        file << "  \"success_rate_percent\": " << success_rate << ",\n";
+        file << "  \"average_score_percent\": " << average_score << ",\n";
+        file << "  \"total_latency_ms\": " << total_latency_ms << "\n";
+        file << "}\n";
+
+        file.close();
+        cout << "[HARNESS] Đã xuất file Báo cáo tổng hợp: " << filepath << endl;
+        return true;
+    }
 };
 
 class HarnessRunner {
@@ -24,6 +43,10 @@ public:
         tasks.push_back(task);
     }
 
+    void setTasks(const vector<BenchmarkTask>& loaded_tasks) {
+        tasks = loaded_tasks;
+    }
+    
     const vector<BenchmarkTask>& getTasks() const {
         return tasks;
     }
@@ -50,7 +73,6 @@ public:
 
             Trajectory traj(task.id);
 
-            // Giả lập từng bước chạy của Agent (Sau này sẽ gọi Agent thực tế)
             AgentStep step1{
                 1,
                 "Đang phân tích và thực hiện yêu cầu...",
@@ -61,7 +83,6 @@ public:
             };
             traj.addStep(step1);
 
-            // Tự động chọn Evaluator phù hợp
             unique_ptr<Evaluator> evaluator;
             if (task.eval_type == "functional") {
                 evaluator = make_unique<FunctionalEvaluator>();
@@ -69,17 +90,14 @@ public:
                 evaluator = make_unique<KeywordEvaluator>();
             }
 
-            // Chấm điểm kết quả
-            string actual_output = "Kết quả là 30"; // Output giả lập
+            string actual_output = "Kết quả là 30";
             EvalResult result = evaluator->evaluate(task, actual_output, traj);
             traj.setFinalStatus(result.passed, result.score);
 
-            // Cập nhật chỉ số báo cáo
             if (result.passed) report.passed_tasks++;
             total_score_sum += result.score;
             report.total_latency_ms += traj.getTotalLatencyMs();
 
-            // Lưu file log Trajectory JSON cho từng task
             string filename = "trajectory_" + task.id + ".json";
             traj.saveToJsonFile(filename);
 
@@ -92,7 +110,6 @@ public:
         report.success_rate = (static_cast<double>(report.passed_tasks) / report.total_tasks) * 100.0;
         report.average_score = (total_score_sum / report.total_tasks) * 100.0;
 
-        // In báo cáo tổng kết ra Console
         cout << "\n==================================================" << endl;
         cout << "           BÁO CÁO TỔNG KẾT BENCHMARK             " << endl;
         cout << "==================================================" << endl;
@@ -102,7 +119,8 @@ public:
         cout << " Điểm trung bình  : " << report.average_score << "%" << endl;
         cout << " Tổng thời gian   : " << report.total_latency_ms << " ms" << endl;
         cout << "==================================================\n" << endl;
-
+        
+        report.saveToJsonFile("benchmark_report.json");
         return report;
     }
 };

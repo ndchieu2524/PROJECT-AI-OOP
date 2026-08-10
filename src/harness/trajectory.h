@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 
-// Cấu trúc lưu vết từng bước chạy ReAct của Agent
 struct AgentStep {
     int step_number;
     std::string thought;
@@ -16,7 +15,6 @@ struct AgentStep {
     long long latency_ms;
 };
 
-// Cấu trúc mô tả một bài test
 struct BenchmarkTask {
     std::string id;
     std::string description;
@@ -25,7 +23,6 @@ struct BenchmarkTask {
     std::string eval_type;
 };
 
-// Lớp quản lý hộp đen Trajectory
 class Trajectory {
 private:
     std::string task_id;
@@ -47,14 +44,12 @@ public:
         score = calculated_score;
     }
 
-    // Getters
     const std::string& getTaskId() const { return task_id; }
     const std::vector<AgentStep>& getSteps() const { return steps; }
     bool getIsSuccess() const { return is_success; }
     double getScore() const { return score; }
     long long getTotalLatencyMs() const { return total_latency_ms; }
 
-    // Chuyển đổi toàn bộ vết chạy thành định dạng JSON string
     std::string toJsonString() const {
         std::stringstream ss;
         ss << "{\n";
@@ -82,12 +77,12 @@ public:
     bool saveToJsonFile(const std::string& filepath) const {
         std::ofstream file(filepath);
         if (!file.is_open()) {
-            std::cerr << "[ERROR] Khong the mo file de ghi: " << filepath << std::endl;
+            std::cerr << "[ERROR] Không thể mở file: " << filepath << std::endl;
             return false;
         }
         file << toJsonString();
         file.close();
-        std::cout << "[HARNESS] Da luu trajectory vao file: " << filepath << std::endl;
+        std::cout << "[HARNESS] Đã lưu Trajectory vào file: " << filepath << std::endl;
         return true;
     }
 };

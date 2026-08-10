@@ -1,0 +1,28 @@
+# Thư mục build của CMake
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.cmake
+
+# Các file biên dịch và thực thi (Binaries & Objects)
+*.exe
+*.out
+*.app
+*.o
+*.obj
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Cài đặt riêng của Editor / IDE
+.vscode/
+.idea/
+
+# Báo cáo test sinh ra trong quá trình chạy (Tùy chọn)
+trajectory_*.json
+benchmark_report.json

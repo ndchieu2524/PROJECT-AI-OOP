@@ -1,32 +1,18 @@
 #include <iostream>
+#include <memory>
 #include "harness/harness_runner.h"
-
+#include "harness/taskloader.h"
 using namespace std;
 
 int main() {
     HarnessRunner runner;
+    vector<BenchmarkTask> tasks = TaskLoader::loadFromJsonFile("tasks.json");
+    if (tasks.empty()) {
+        cout << "LỖI: Không có task json nào!\n";
+        return 1;
+    }
 
-    // Nạp bài test 1: Functional Evaluation (So sánh giá trị số)
-    BenchmarkTask task1{
-        "TASK_01",
-        "Tính phép toán 10 + 20",
-        "30",
-        {"30"},
-        "functional"
-    };
-
-    // Nạp bài test 2: Keyword Evaluation (So sánh từ khóa)
-    BenchmarkTask task2{
-        "TASK_02",
-        "Tra cứu thủ đô của Việt Nam",
-        "Hà Nội",
-        {"Hà Nội", "thủ đô"},
-        "keyword"
-    };
-
-    runner.addTask(task1);
-    runner.addTask(task2);
-
+    runner.setTasks(tasks);
     runner.runBenchmarkSuite();
 
     return 0;
