@@ -4,7 +4,7 @@
 
 #include "llm_client.h"
 
-namespace llm {
+namespace agent::llm {
     class OllamaClient: public LLMClient {
         private:
             std::string baseURL_;

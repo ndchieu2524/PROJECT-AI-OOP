@@ -3,7 +3,8 @@
 #include <string>
 #include <vector>
 
-namespace llm {
+namespace agent::llm {
+
     struct Message {
         std::string role;
         std::string content;

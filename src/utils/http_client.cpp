@@ -3,15 +3,11 @@
 #include <print>
 #include <curl/curl.h>
 
-#include <nlohmann/json.hpp>
-
 #include "client/llm_client.h"
 #include "http_client.h"
 
 using namespace std;
-using namespace llm;
-
-using json = nlohmann::json;
+using namespace agent::llm;
 
 namespace {
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *userp) {
@@ -20,18 +16,17 @@ namespace {
     }
 }
 
-namespace llm::http {
+namespace agent::net {
     bool HttpResponse::isSuccess() const {
         return statusCode >= 200 && statusCode < 300;
     }
 }
 
-namespace llm::http {
+namespace agent::net {
     HttpResponse post(const string &url, const string &body) {
         CURL *curl = curl_easy_init();
 
         if (!curl) {
-            curl_easy_cleanup(curl);
             return HttpResponse ({
                 .statusCode = 0,
                 .errorMessage = "Cannot init CURL"

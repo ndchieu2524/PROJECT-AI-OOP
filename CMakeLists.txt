@@ -28,12 +28,16 @@ set(SOURCES
     src/main.cpp
     src/client/ollama_client.cpp
     src/utils/http_client.cpp
+    src/agent/loop_detector.cpp
+    src/agent/skill_loader.cpp
 )
 
 set(HEADERS
     src/client/llm_client.h
     src/client/ollama_client.h
     src/utils/http_client.h
+    src/agent/loop_detector.h
+    src/agent/skill_loader.h
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})

@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace llm::http {
+namespace agent::net {
     struct HttpResponse {
         int statusCode = 0;
         std::string result;
