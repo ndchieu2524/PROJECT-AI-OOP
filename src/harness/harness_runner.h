@@ -16,6 +16,11 @@ struct BenchmarkReport {
     double success_rate{0.0};
     double average_score{0.0};
     long long total_latency_ms{0};
+    double average_latency_ms{0.0};
+    long long min_latency_ms{0};
+    long long max_latency_ms{0};
+    double average_steps_per_task{0.0};
+
     bool saveToJsonFile(const string& filepath) const {
         ofstream file(filepath);
         if (!file.is_open()) {
@@ -24,11 +29,17 @@ struct BenchmarkReport {
         }
 
         json j;
-        j["total_tasks"] = total_tasks;
-        j["passed_tasks"] = passed_tasks;
-        j["success_rate_percent"] = success_rate;
-        j["average_score_percent"] = average_score;
-        j["total_latency_ms"] = total_latency_ms;
+        j["metrics"] = {
+            {"total_tasks", total_tasks},
+            {"passed_tasks", passed_tasks},
+            {"success_rate_percent", success_rate},
+            {"average_score_percent", average_score},
+            {"total_latency_ms", total_latency_ms},
+            {"average_latency_ms", average_latency_ms},
+            {"min_latency_ms", min_latency_ms},
+            {"max_latency_ms", max_latency_ms},
+            {"average_steps_per_task", average_steps_per_task}
+        };
 
         file << j.dump(4);
         file.close();
@@ -52,7 +63,7 @@ public:
 
     BenchmarkReport runBenchmarkSuite() {
         BenchmarkReport report;
-        report.total_tasks = tasks.size();
+        report.total_tasks = static_cast<int>(tasks.size());
 
         if (tasks.empty()) {
             cout << "[CẢNH BÁO HARNESS] Không có task nào trong danh sách benchmark!!!" << endl;
@@ -67,6 +78,9 @@ public:
         cout << "==================================================" << endl;
 
         double total_score_sum = 0.0;
+        int total_steps_sum = 0;
+        report.min_latency_ms = -1;
+        report.max_latency_ms = 0;
 
         for (size_t i = 0; i < tasks.size(); ++i) {
             const auto& task = tasks[i];
@@ -91,6 +105,17 @@ public:
             total_score_sum += result.score;
             report.total_latency_ms += traj.getTotalLatencyMs();
 
+            long long current_latency = traj.getTotalLatencyMs();
+            report.total_latency_ms += current_latency;
+            total_steps_sum += static_cast<int>(traj.getSteps().size());
+
+            if (report.min_latency_ms == -1 || current_latency < report.min_latency_ms) {
+                report.min_latency_ms = current_latency;
+            }
+            if (current_latency > report.max_latency_ms) {
+                report.max_latency_ms = current_latency;
+            }
+
             string filename = "trajectory_" + task.id + ".json";
             traj.saveToJsonFile(filename);
 
@@ -103,6 +128,8 @@ public:
 
         report.success_rate = (static_cast<double>(report.passed_tasks) / report.total_tasks) * 100.0;
         report.average_score = (total_score_sum / report.total_tasks) * 100.0;
+        report.average_latency_ms = static_cast<double>(report.total_latency_ms) / report.total_tasks;
+        report.average_steps_per_task = static_cast<double>(total_steps_sum) / report.total_tasks;
 
         cout << "\n==================================================" << endl;
         cout << "           BÁO CÁO TỔNG KẾT BENCHMARK             " << endl;
@@ -111,7 +138,9 @@ public:
         cout << " Số Task đạt      : " << report.passed_tasks << " / " << report.total_tasks << endl;
         cout << " Tỷ lệ thành công : " << report.success_rate << "%" << endl;
         cout << " Điểm trung bình  : " << report.average_score << "%" << endl;
-        cout << " Tổng thời gian   : " << report.total_latency_ms << " ms" << endl;
+        cout << " Thời gian trung bình: " << report.average_latency_ms << " ms/task" << endl;
+        cout << " Thời gian Min / Max : " << report.min_latency_ms << " ms / " << report.max_latency_ms << " ms" << endl;
+        cout << " Số bước ReAct trung bình: " << report.average_steps_per_task << " bước/task" << endl;
         cout << "==================================================\n" << endl;
         
         report.saveToJsonFile("benchmark_report.json");
