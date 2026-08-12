@@ -10,6 +10,15 @@
 using namespace std;
 using json = nlohmann::json;
 
+namespace Color {
+    const string RESET   = "\033[0m";
+    const string RED     = "\033[31m";
+    const string GREEN   = "\033[32m";
+    const string YELLOW  = "\033[33m";
+    const string CYAN    = "\033[36m";
+    const string BOLD    = "\033[1m";
+}
+
 struct BenchmarkReport {
     int total_tasks{0};
     int passed_tasks{0};
@@ -24,7 +33,7 @@ struct BenchmarkReport {
     bool saveToJsonFile(const string& filepath) const {
         ofstream file(filepath);
         if (!file.is_open()) {
-            cerr << "[LỖI] Không thể lưu file: " << filepath << endl;
+            cerr << Color::RED << "[LỖI] Không thể lưu file: " << filepath << endl;
             return false;
         }
 
@@ -43,7 +52,7 @@ struct BenchmarkReport {
 
         file << j.dump(4);
         file.close();
-        cout << "[HARNESS] Đã xuất file Báo cáo tổng hợp: " << filepath << endl;
+        cout << Color::GREEN << "[HARNESS] Đã xuất file Báo cáo tổng hợp: " << filepath << Color::RESET << endl;
         return true;
     }
 };
@@ -61,21 +70,21 @@ public:
         tasks = loaded_tasks;
     }
 
-    BenchmarkReport runBenchmarkSuite() {
+    BenchmarkReport runBenchmarkSuite(const string& report_filepath = "benchmark_report.json") {
         BenchmarkReport report;
         report.total_tasks = static_cast<int>(tasks.size());
 
         if (tasks.empty()) {
-            cout << "[CẢNH BÁO HARNESS] Không có task nào trong danh sách benchmark!!!" << endl;
+            cout << Color::YELLOW << "[CẢNH BÁO HARNESS] Không có task nào trong danh sách benchmark!!!" << Color::RESET << endl;
             return report;
         }
         if (!agent) {
-            cerr << "[LỖI HARNESS] Chưa gán Agent vào HarnessRunner! Vui lòng gọi setAgent()." << endl;
+            cerr << Color::RED << "[LỖI HARNESS] Chưa gán Agent vào HarnessRunner! Vui lòng gọi setAgent()." << Color::RESET << endl;
             return report;
         }
-        cout << "\n==================================================" << endl;
+        cout << "\n" << Color::CYAN << Color::BOLD << "==================================================" << endl;
         cout << "   BẮT ĐẦU CHẠY HỆ THỐNG BENCHMARK (" << report.total_tasks << " TASKS)" << endl;
-        cout << "==================================================" << endl;
+        cout << "==================================================" << Color::RESET << endl;
 
         double total_score_sum = 0.0;
         int total_steps_sum = 0;
@@ -84,8 +93,8 @@ public:
 
         for (size_t i = 0; i < tasks.size(); ++i) {
             const auto& task = tasks[i];
-            cout << "\n[ĐANG CHẠY] Task " << (i + 1) << "/" << tasks.size() 
-                 << " [" << task.id << "]: " << task.description << endl;
+            cout << Color::BOLD << "\n[ĐANG CHẠY] Task " << (i + 1) << "/" << tasks.size() 
+                 << " [" << task.id << "]: " << task.description << Color::RESET << endl;
 
             Trajectory traj(task.id);
             
@@ -94,6 +103,8 @@ public:
             unique_ptr<Evaluator> evaluator;
             if (task.eval_type == "functional") {
                 evaluator = make_unique<FunctionalEvaluator>();
+            } else if (task.eval_type == "regex") {
+                evaluator = make_unique<RegexEvaluator>();
             } else {
                 evaluator = make_unique<KeywordEvaluator>();
             }
@@ -103,7 +114,6 @@ public:
 
             if (result.passed) report.passed_tasks++;
             total_score_sum += result.score;
-            report.total_latency_ms += traj.getTotalLatencyMs();
 
             long long current_latency = traj.getTotalLatencyMs();
             report.total_latency_ms += current_latency;
@@ -119,11 +129,13 @@ public:
             string filename = "trajectory_" + task.id + ".json";
             traj.saveToJsonFile(filename);
 
+            string status_str = result.passed ? (Color::GREEN + "[ĐẠT]" + Color::RESET) : (Color::RED + "[THẤT BẠI]" + Color::RESET);
+
             cout << "   -> Đầu ra Agent : " << actual_output << endl;
-            cout << "   -> Trạng thái: " << (result.passed ? "[ĐẠT]" : "[THẤT BẠI]") 
+            cout << "   -> Trạng thái   : " << status_str 
                  << " | Điểm số: " << (result.score * 100) << "%"
-                 << " | Thời gian: " << traj.getTotalLatencyMs() << "ms" << endl;
-            cout << "   -> Phản hồi  : " << result.feedback << endl;
+                 << " | Thời gian: " << current_latency << "ms" << endl;
+            cout << "   -> Phản hồi     : " << result.feedback << endl;
         }
 
         report.success_rate = (static_cast<double>(report.passed_tasks) / report.total_tasks) * 100.0;
@@ -131,17 +143,19 @@ public:
         report.average_latency_ms = static_cast<double>(report.total_latency_ms) / report.total_tasks;
         report.average_steps_per_task = static_cast<double>(total_steps_sum) / report.total_tasks;
 
-        cout << "\n==================================================" << endl;
+        cout << "\n" << Color::CYAN << Color::BOLD << "==================================================" << endl;
         cout << "           BÁO CÁO TỔNG KẾT BENCHMARK             " << endl;
-        cout << "==================================================" << endl;
-        cout << " Tổng số Task     : " << report.total_tasks << endl;
-        cout << " Số Task đạt      : " << report.passed_tasks << " / " << report.total_tasks << endl;
-        cout << " Tỷ lệ thành công : " << report.success_rate << "%" << endl;
-        cout << " Điểm trung bình  : " << report.average_score << "%" << endl;
+        cout << "==================================================" << Color::RESET << endl;
+        cout << " Tổng số Task        : " << report.total_tasks << endl;
+        cout << " Số Task đạt         : " << Color::GREEN << report.passed_tasks << Color::RESET 
+             << " / " << report.total_tasks << endl;
+        cout << " Tỷ lệ thành công    : " << (report.success_rate >= 80.0 ? Color::GREEN : Color::RED) 
+             << report.success_rate << "%" << Color::RESET << endl;
+        cout << " Điểm trung bình     : " << report.average_score << "%" << endl;
         cout << " Thời gian trung bình: " << report.average_latency_ms << " ms/task" << endl;
         cout << " Thời gian Min / Max : " << report.min_latency_ms << " ms / " << report.max_latency_ms << " ms" << endl;
         cout << " Số bước ReAct trung bình: " << report.average_steps_per_task << " bước/task" << endl;
-        cout << "==================================================\n" << endl;
+        cout << Color::CYAN << "==================================================\n" << Color::RESET << endl;
         
         report.saveToJsonFile("benchmark_report.json");
         return report;
