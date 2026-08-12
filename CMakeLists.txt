@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 project(AIAgentFramework CXX)
 
-# Bắt buộc chuẩn C++17 theo yêu cầu đồ án
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 1. TỰ ĐỘNG TẢI VÀ TÍCH HỢP THƯ VIỆN NLOHMANN/JSON (Header-only)
