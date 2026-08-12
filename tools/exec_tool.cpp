@@ -7,6 +7,8 @@
 #include <string>
 #include <sys/wait.h>  // WEXITSTATUS (POSIX only)
 
+using namespace agent::tools;
+
 ExecTool::ExecTool(int timeoutSeconds) : timeoutSeconds_(timeoutSeconds) {}
 
 std::string ExecTool::name() const { return "exec"; }
@@ -40,12 +42,10 @@ nlohmann::json ExecTool::execute(const nlohmann::json& args) {
 
     std::string command = args["command"].get<std::string>();
 
-    // Nếu có timeout, bọc lệnh bằng tiện ích `timeout` của Linux.
     if (timeoutSeconds_ > 0) {
         command = "timeout " + std::to_string(timeoutSeconds_) + " " + command;
     }
 
-    // Gộp stderr vào stdout để capture cả hai qua popen.
     std::string fullCommand = command + " 2>&1";
 
     std::array<char, 4096> buffer{};

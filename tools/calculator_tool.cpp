@@ -4,91 +4,93 @@
 #include <stdexcept>
 #include <string>
 
+using namespace agent::tools;
+
 namespace {
 
-// Recursive-descent parser cho biểu thức số học:
-//   expr   := term (('+' | '-') term)*
-//   term   := factor (('*' | '/') factor)*
-//   factor := number | '(' expr ')' | ('-' | '+') factor
-class ExprParser {
-public:
-    explicit ExprParser(const std::string& s) : s_(s), pos_(0) {}
+    // Recursive-descent parser cho biểu thức số học:
+    //   expr   := term (('+' | '-') term)*
+    //   term   := factor (('*' | '/') factor)*
+    //   factor := number | '(' expr ')' | ('-' | '+') factor
+    class ExprParser {
+    public:
+        explicit ExprParser(const std::string& s) : s_(s), pos_(0) {}
 
-    double parse() {
-        double result = parseExpr();
-        skipSpaces();
-        if (pos_ != s_.size()) {
-            throw std::runtime_error("Ký tự không hợp lệ tại vị trí " + std::to_string(pos_));
+        double parse() {
+            double result = parseExpr();
+            skipSpaces();
+            if (pos_ != s_.size()) {
+                throw std::runtime_error("Ký tự không hợp lệ tại vị trí " + std::to_string(pos_));
+            }
+            return result;
         }
-        return result;
-    }
 
-private:
-    const std::string& s_;
-    size_t pos_;
+    private:
+        const std::string& s_;
+        size_t pos_;
 
-    void skipSpaces() {
-        while (pos_ < s_.size() && std::isspace(static_cast<unsigned char>(s_[pos_]))) ++pos_;
-    }
-
-    char peek() {
-        skipSpaces();
-        return pos_ < s_.size() ? s_[pos_] : '\0';
-    }
-
-    double parseExpr() {
-        double value = parseTerm();
-        while (true) {
-            char c = peek();
-            if (c == '+') { ++pos_; value += parseTerm(); }
-            else if (c == '-') { ++pos_; value -= parseTerm(); }
-            else break;
+        void skipSpaces() {
+            while (pos_ < s_.size() && std::isspace(static_cast<unsigned char>(s_[pos_]))) ++pos_;
         }
-        return value;
-    }
 
-    double parseTerm() {
-        double value = parseFactor();
-        while (true) {
-            char c = peek();
-            if (c == '*') { ++pos_; value *= parseFactor(); }
-            else if (c == '/') {
-                ++pos_;
-                double divisor = parseFactor();
-                if (divisor == 0.0) throw std::runtime_error("Chia cho 0");
-                value /= divisor;
-            } else break;
+        char peek() {
+            skipSpaces();
+            return pos_ < s_.size() ? s_[pos_] : '\0';
         }
-        return value;
-    }
 
-    double parseFactor() {
-        char c = peek();
-        if (c == '+') { ++pos_; return parseFactor(); }
-        if (c == '-') { ++pos_; return -parseFactor(); }
-        if (c == '(') {
-            ++pos_;
-            double value = parseExpr();
-            if (peek() != ')') throw std::runtime_error("Thiếu dấu ')'");
-            ++pos_;
+        double parseExpr() {
+            double value = parseTerm();
+            while (true) {
+                char c = peek();
+                if (c == '+') { ++pos_; value += parseTerm(); }
+                else if (c == '-') { ++pos_; value -= parseTerm(); }
+                else break;
+            }
             return value;
         }
-        return parseNumber();
-    }
 
-    double parseNumber() {
-        skipSpaces();
-        size_t start = pos_;
-        while (pos_ < s_.size() &&
-               (std::isdigit(static_cast<unsigned char>(s_[pos_])) || s_[pos_] == '.')) {
-            ++pos_;
+        double parseTerm() {
+            double value = parseFactor();
+            while (true) {
+                char c = peek();
+                if (c == '*') { ++pos_; value *= parseFactor(); }
+                else if (c == '/') {
+                    ++pos_;
+                    double divisor = parseFactor();
+                    if (divisor == 0.0) throw std::runtime_error("Chia cho 0");
+                    value /= divisor;
+                } else break;
+            }
+            return value;
         }
-        if (start == pos_) {
-            throw std::runtime_error("Mong đợi một số tại vị trí " + std::to_string(pos_));
+
+        double parseFactor() {
+            char c = peek();
+            if (c == '+') { ++pos_; return parseFactor(); }
+            if (c == '-') { ++pos_; return -parseFactor(); }
+            if (c == '(') {
+                ++pos_;
+                double value = parseExpr();
+                if (peek() != ')') throw std::runtime_error("Thiếu dấu ')'");
+                ++pos_;
+                return value;
+            }
+            return parseNumber();
         }
-        return std::stod(s_.substr(start, pos_ - start));
-    }
-};
+
+        double parseNumber() {
+            skipSpaces();
+            size_t start = pos_;
+            while (pos_ < s_.size() &&
+                   (std::isdigit(static_cast<unsigned char>(s_[pos_])) || s_[pos_] == '.')) {
+                ++pos_;
+            }
+            if (start == pos_) {
+                throw std::runtime_error("Mong đợi một số tại vị trí " + std::to_string(pos_));
+            }
+            return std::stod(s_.substr(start, pos_ - start));
+        }
+    };
 
 }  // namespace
 

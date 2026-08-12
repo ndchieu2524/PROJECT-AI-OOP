@@ -1,5 +1,7 @@
 #include "tool_registry.h"
 
+using namespace agent::tools;
+
 void ToolRegistry::registerTool(std::shared_ptr<Tool> tool) {
     if (!tool) return;
     tools_[tool->name()] = std::move(tool);
