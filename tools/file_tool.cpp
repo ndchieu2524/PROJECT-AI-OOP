@@ -9,35 +9,22 @@ namespace fs = std::filesystem;
 FileTool::FileTool(fs::path sandboxRoot)
     : sandboxRoot_(fs::absolute(std::move(sandboxRoot))) {
     fs::create_directories(sandboxRoot_);
-    // Canonicalize NGAY SAU KHI thư mục đã tồn tại, để so sánh trong
-    // resolveSafePath() dùng cùng 1 cách resolve (tránh lệch do symlink,
-    // VD /workspaces trong GitHub Codespaces có thể là symlink).
     sandboxRoot_ = fs::weakly_canonical(sandboxRoot_);
 }
 
 std::string FileTool::name() const { return "file"; }
 
 std::string FileTool::description() const {
-    return "Đọc, ghi, hoặc liệt kê file/thư mục trong khu vực làm việc "
-           "được phép. action = 'read' | 'write' | 'list'.";
+    return "Đọc, ghi, hoặc liệt kê file/thư mục trong khu vực làm việc được phép. action = 'read' | 'write' | 'list'.";
 }
 
 nlohmann::json FileTool::parametersSchema() const {
     return {
         {"type", "object"},
         {"properties", {
-            {"action", {
-                {"type", "string"},
-                {"enum", nlohmann::json::array({"read", "write", "list"})}
-            }},
-            {"path", {
-                {"type", "string"},
-                {"description", "Đường dẫn tương đối trong khu vực làm việc"}
-            }},
-            {"content", {
-                {"type", "string"},
-                {"description", "Nội dung để ghi (chỉ cần khi action='write')"}
-            }}
+            {"action", {{"type", "string"}, {"enum", nlohmann::json::array({"read", "write", "list"})}}},
+            {"path", {{"type", "string"}, {"description", "Đường dẫn tương đối trong khu vực làm việc"}}},
+            {"content", {{"type", "string"}, {"description", "Nội dung để ghi (chỉ cần khi action='write')"}}}
         }},
         {"required", nlohmann::json::array({"action", "path"})}
     };
@@ -45,7 +32,6 @@ nlohmann::json FileTool::parametersSchema() const {
 
 fs::path FileTool::resolveSafePath(const std::string& relativePath) const {
     fs::path candidate = fs::weakly_canonical(sandboxRoot_ / relativePath);
-    // Đảm bảo candidate vẫn nằm bên trong sandboxRoot_.
     auto rootStr = sandboxRoot_.string();
     auto candidateStr = candidate.string();
     if (candidateStr.compare(0, rootStr.size(), rootStr) != 0) {
@@ -56,10 +42,7 @@ fs::path FileTool::resolveSafePath(const std::string& relativePath) const {
 
 nlohmann::json FileTool::execute(const nlohmann::json& args) {
     if (!args.contains("action") || !args.contains("path")) {
-        return {
-            {"success", false},
-            {"error", "Thiếu tham số 'action' hoặc 'path'"}
-        };
+        return {{"success", false}, {"error", "Thiếu tham số 'action' hoặc 'path'"}};
     }
 
     std::string action = args["action"].get<std::string>();
