@@ -61,7 +61,7 @@ public:
         for (size_t i = 0; i < steps.size(); ++i) {
             const auto& s = steps[i];
             ss << "    {\n";
-            ss << "      \"step_number\": " << s.step_number << ",\n";
+            ss << "      \"step_id\": " << s.step_number << ",\n";
             ss << "      \"thought\": \"" << s.thought << "\",\n";
             ss << "      \"action_name\": \"" << s.action_name << "\",\n";
             ss << "      \"action_args\": \"" << s.action_args << "\",\n";

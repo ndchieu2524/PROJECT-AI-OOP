@@ -5,7 +5,10 @@
 #include <fstream>
 #include "trajectory.h"
 #include "evaluator.h"
+#include "i_agent.h"
+#include <nlohmann/json.hpp>
 using namespace std;
+using json = nlohmann::json;
 
 struct BenchmarkReport {
     int total_tasks{0};
@@ -16,18 +19,18 @@ struct BenchmarkReport {
     bool saveToJsonFile(const string& filepath) const {
         ofstream file(filepath);
         if (!file.is_open()) {
-            cerr << "[LỖI] Không thể lưu file báo cáo tổng hợp: " << filepath << endl;
+            cerr << "[LỖI] Không thể lưu file: " << filepath << endl;
             return false;
         }
 
-        file << "{\n";
-        file << "  \"total_tasks\": " << total_tasks << ",\n";
-        file << "  \"passed_tasks\": " << passed_tasks << ",\n";
-        file << "  \"success_rate_percent\": " << success_rate << ",\n";
-        file << "  \"average_score_percent\": " << average_score << ",\n";
-        file << "  \"total_latency_ms\": " << total_latency_ms << "\n";
-        file << "}\n";
+        json j;
+        j["total_tasks"] = total_tasks;
+        j["passed_tasks"] = passed_tasks;
+        j["success_rate_percent"] = success_rate;
+        j["average_score_percent"] = average_score;
+        j["total_latency_ms"] = total_latency_ms;
 
+        file << j.dump(4);
         file.close();
         cout << "[HARNESS] Đã xuất file Báo cáo tổng hợp: " << filepath << endl;
         return true;
@@ -37,18 +40,14 @@ struct BenchmarkReport {
 class HarnessRunner {
 private:
     vector<BenchmarkTask> tasks;
-
+    shared_ptr<IAgent> agent;
 public:
-    void addTask(const BenchmarkTask& task) {
-        tasks.push_back(task);
+    void setAgent(shared_ptr<IAgent> target) {
+        agent = target;
     }
 
     void setTasks(const vector<BenchmarkTask>& loaded_tasks) {
         tasks = loaded_tasks;
-    }
-    
-    const vector<BenchmarkTask>& getTasks() const {
-        return tasks;
     }
 
     BenchmarkReport runBenchmarkSuite() {
@@ -56,10 +55,13 @@ public:
         report.total_tasks = tasks.size();
 
         if (tasks.empty()) {
-            cout << "[CẢNH BÁO HARNESS] Không có task nào trong danh sách benchmark!" << endl;
+            cout << "[CẢNH BÁO HARNESS] Không có task nào trong danh sách benchmark!!!" << endl;
             return report;
         }
-
+        if (!agent) {
+            cerr << "[LỖI HARNESS] Chưa gán Agent vào HarnessRunner! Vui lòng gọi setAgent()." << endl;
+            return report;
+        }
         cout << "\n==================================================" << endl;
         cout << "   BẮT ĐẦU CHẠY HỆ THỐNG BENCHMARK (" << report.total_tasks << " TASKS)" << endl;
         cout << "==================================================" << endl;
@@ -72,16 +74,8 @@ public:
                  << " [" << task.id << "]: " << task.description << endl;
 
             Trajectory traj(task.id);
-
-            AgentStep step1{
-                1,
-                "Đang phân tích và thực hiện yêu cầu...",
-                "calculator",
-                "10+20",
-                "30",
-                120
-            };
-            traj.addStep(step1);
+            
+            string actual_output = agent->run(task.description, traj);
 
             unique_ptr<Evaluator> evaluator;
             if (task.eval_type == "functional") {
@@ -90,7 +84,6 @@ public:
                 evaluator = make_unique<KeywordEvaluator>();
             }
 
-            string actual_output = "Kết quả là 30";
             EvalResult result = evaluator->evaluate(task, actual_output, traj);
             traj.setFinalStatus(result.passed, result.score);
 
@@ -101,6 +94,7 @@ public:
             string filename = "trajectory_" + task.id + ".json";
             traj.saveToJsonFile(filename);
 
+            cout << "   -> Đầu ra Agent : " << actual_output << endl;
             cout << "   -> Trạng thái: " << (result.passed ? "[ĐẠT]" : "[THẤT BẠI]") 
                  << " | Điểm số: " << (result.score * 100) << "%"
                  << " | Thời gian: " << traj.getTotalLatencyMs() << "ms" << endl;
