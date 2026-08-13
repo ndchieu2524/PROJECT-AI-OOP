@@ -1,13 +1,11 @@
 #include <iostream>
 #include <memory>
-#include <filesystem>
+#include <string>
 #include "harness/harness_runner.h"
 #include "harness/taskloader.h"
 #include "harness/mockagent.h"
-#include "agent/skill_loader.h"
 
 using namespace std;
-using namespace agent::skills;
 
 int main(int argc, char* argv[]) {
     string task_file = "tasks.json";
@@ -16,13 +14,7 @@ int main(int argc, char* argv[]) {
     if (argc > 1) task_file = argv[1];
     if (argc > 2) report_file = argv[2];
 
-    string skillsDir = "./skills";
-    if (!std::filesystem::exists(skillsDir)) {
-        std::filesystem::create_directory(skillsDir);
-    }
-    
-    auto skillLoader = make_shared<SkillLoader>(skillsDir);
-    skillLoader->loadSkillsFromDirectory();
+    cout << Color::CYAN << "[CẤU HÌNH HARNESS] File test: " << task_file << Color::RESET << endl;
 
     vector<BenchmarkTask> tasks = TaskLoader::loadFromJsonFile(task_file);
     if (tasks.empty()) {
@@ -30,10 +22,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    auto agent = make_shared<MockAgent>(skillLoader);
+    auto mockAgent = make_shared<MockAgent>();
 
     HarnessRunner runner;
-    runner.setAgent(agent);
+    runner.setAgent(mockAgent);
     runner.setTasks(tasks);
 
     runner.runBenchmarkSuite(report_file);

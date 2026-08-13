@@ -1,38 +1,41 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <chrono>
 #include <fstream>
 #include <iostream>
-#include <sstream>
+#include <utility>
+#include <nlohmann/json.hpp>
+using namespace std;
+using json = nlohmann::json;
 
 struct AgentStep {
-    int step_number;
-    std::string thought;
-    std::string action_name;
-    std::string action_args;
-    std::string observation;
-    long long latency_ms;
+    int step_number{0};
+    string thought;
+    string action_name;
+    string action_args;
+    string observation;
+    long long latency_ms{0};
 };
 
 struct BenchmarkTask {
-    std::string id;
-    std::string description;
-    std::string expected_output;
-    std::vector<std::string> keywords;
-    std::string eval_type;
+    string id;
+    string description;
+    string expected_output;
+    vector<string> keywords;
+    string eval_type{"keyword"};
+    int timeout_seconds{10};
 };
 
 class Trajectory {
 private:
-    std::string task_id;
-    std::vector<AgentStep> steps;
+    string task_id;
+    vector<AgentStep> steps;
     bool is_success{false};
     double score{0.0};
     long long total_latency_ms{0};
 
 public:
-    explicit Trajectory(std::string id) : task_id(std::move(id)) {}
+    explicit Trajectory(string id) : task_id(move(id)) {}
 
     void addStep(const AgentStep& step) {
         steps.push_back(step);
@@ -44,45 +47,49 @@ public:
         score = calculated_score;
     }
 
-    const std::string& getTaskId() const { return task_id; }
-    const std::vector<AgentStep>& getSteps() const { return steps; }
+    const string& getTaskId() const { return task_id; }
+    const vector<AgentStep>& getSteps() const { return steps; }
     bool getIsSuccess() const { return is_success; }
+    bool isPassed() const { return is_success; }
     double getScore() const { return score; }
+    double getFinalScore() const { return score; }
     long long getTotalLatencyMs() const { return total_latency_ms; }
 
-    std::string toJsonString() const {
-        std::stringstream ss;
-        ss << "{\n";
-        ss << "  \"task_id\": \"" << task_id << "\",\n";
-        ss << "  \"is_success\": " << (is_success ? "true" : "false") << ",\n";
-        ss << "  \"score\": " << score << ",\n";
-        ss << "  \"total_latency_ms\": " << total_latency_ms << ",\n";
-        ss << "  \"steps\": [\n";
-        for (size_t i = 0; i < steps.size(); ++i) {
-            const auto& s = steps[i];
-            ss << "    {\n";
-            ss << "      \"step_id\": " << s.step_number << ",\n";
-            ss << "      \"thought\": \"" << s.thought << "\",\n";
-            ss << "      \"action_name\": \"" << s.action_name << "\",\n";
-            ss << "      \"action_args\": \"" << s.action_args << "\",\n";
-            ss << "      \"observation\": \"" << s.observation << "\",\n";
-            ss << "      \"latency_ms\": " << s.latency_ms << "\n";
-            ss << "    }" << (i + 1 < steps.size() ? "," : "") << "\n";
+    json toJsonObject() const {
+        json j;
+        j["task_id"] = task_id;
+        j["is_success"] = is_success;
+        j["score"] = score;
+        j["total_latency_ms"] = total_latency_ms;
+
+        json steps_arr = json::array();
+        for (const auto& s : steps) {
+            steps_arr.push_back({
+                {"step_id", s.step_number},
+                {"thought", s.thought},
+                {"action_name", s.action_name},
+                {"action_args", s.action_args},
+                {"observation", s.observation},
+                {"latency_ms", s.latency_ms}
+            });
         }
-        ss << "  ]\n";
-        ss << "}";
-        return ss.str();
+        j["steps"] = steps_arr;
+        return j;
     }
 
-    bool saveToJsonFile(const std::string& filepath) const {
-        std::ofstream file(filepath);
+    string toJsonString() const {
+        return toJsonObject().dump(4);
+    }
+
+    bool saveToJsonFile(const string& filepath) const {
+        ofstream file(filepath);
         if (!file.is_open()) {
-            std::cerr << "[ERROR] Không thể mở file: " << filepath << std::endl;
+            cerr << "[ERROR] Không thể mở file để lưu Trajectory: " << filepath << endl;
             return false;
         }
         file << toJsonString();
         file.close();
-        std::cout << "[HARNESS] Đã lưu Trajectory vào file: " << filepath << std::endl;
+        cout << "[HARNESS] Đã lưu Trajectory vào file: " << filepath << endl;
         return true;
     }
 };

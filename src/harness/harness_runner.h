@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <memory>
+#include <algorithm>
+#include <future>
 #include <fstream>
 #include "trajectory.h"
 #include "evaluator.h"
@@ -55,6 +57,26 @@ struct BenchmarkReport {
         cout << Color::GREEN << "[HARNESS] Đã xuất file Báo cáo tổng hợp: " << filepath << Color::RESET << endl;
         return true;
     }
+    bool saveToMarkdownFile(const string& filepath) const {
+        ofstream file(filepath);
+        if (!file.is_open()) return false;
+
+        file << "BÁO CÁO KẾT QUẢ BENCHMARK AI AGENT\n\n";
+        file << "TỔNG QUAN HIỆU NĂNG\n\n";
+        file << "| Chỉ số | Giá trị |\n";
+        file << "| :--- | :--- |\n";
+        file << "| **Tổng số Task** | `" << total_tasks << "` |\n";
+        file << "| **Số Task Đạt** | `" << passed_tasks << " / " << total_tasks << "` |\n";
+        file << "| **Tỷ lệ thành công** | **" << success_rate << "%** |\n";
+        file << "| **Điểm trung bình** | `" << average_score << "%` |\n";
+        file << "| **Thời gian trung bình** | `" << average_latency_ms << " ms` |\n";
+        file << "| **Thời gian Min / Max** | `" << min_latency_ms << " ms` / `" << max_latency_ms << " ms` |\n";
+        file << "| **Số bước ReAct trung bình** | `" << average_steps_per_task << " bước` |\n\n";
+        file << "---\n";
+        file.close();
+        cout << Color::GREEN << "[HARNESS] Đã xuất file Báo cáo Markdown: " << filepath << Color::RESET << endl;
+        return true;
+    }
 };
 
 class HarnessRunner {
@@ -97,8 +119,16 @@ public:
                  << " [" << task.id << "]: " << task.description << Color::RESET << endl;
 
             Trajectory traj(task.id);
+            auto future = std::async(std::launch::async, [&]() {
+                return agent->run(task.description, traj);
+            });
             
-            string actual_output = agent->run(task.description, traj);
+            string actual_output;
+            if (future.wait_for(chrono::seconds(task.timeout_seconds)) == std::future_status::timeout) {
+                actual_output = "[LỖI TIMEOUT] Agent vượt quá thời gian cho phép (" + to_string(task.timeout_seconds) + "s)";
+            } else {
+                actual_output = future.get();
+            }
 
             unique_ptr<Evaluator> evaluator;
             if (task.eval_type == "functional") {
@@ -127,7 +157,6 @@ public:
             }
 
             string filename = "trajectory_" + task.id + ".json";
-            traj.saveToJsonFile(filename);
 
             string status_str = result.passed ? (Color::GREEN + "[ĐẠT]" + Color::RESET) : (Color::RED + "[THẤT BẠI]" + Color::RESET);
 
@@ -157,7 +186,8 @@ public:
         cout << " Số bước ReAct trung bình: " << report.average_steps_per_task << " bước/task" << endl;
         cout << Color::CYAN << "==================================================\n" << Color::RESET << endl;
         
-        report.saveToJsonFile("benchmark_report.json");
+        report.saveToJsonFile(report_filepath);
+        report.saveToMarkdownFile("benchmark_report.md");
         return report;
     }
 };

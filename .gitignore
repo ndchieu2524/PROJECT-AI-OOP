@@ -1,4 +1,7 @@
 build/
+src/agent
+src/client
+src/utils
 cmake-build-*/
 CMakeFiles/
 CMakeCache.txt
