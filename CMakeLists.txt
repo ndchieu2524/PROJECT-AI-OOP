@@ -4,7 +4,7 @@ project(AIAgentFramework CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 1. TỰ ĐỘNG TẢI VÀ TÍCH HỢP THƯ VIỆN NLOHMANN/JSON (Header-only)
+# 1. Tải thư viện nlohmann/json
 include(FetchContent)
 FetchContent_Declare(
     json
@@ -13,21 +13,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(json)
 
-# 2. Tự động tìm tất cả file .cpp và .h trong thư mục src
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-file(GLOB_RECURSE HEADERS "src/*.h")
-
-# Thêm đường dẫn để C++ tự tìm thấy các file header (.h)
 include_directories(src)
 
-# 3. Tìm thư viện libcurl (cho kết nối API)
 find_package(CURL REQUIRED)
 
-# 4. Tạo file thực thi ứng dụng
-add_executable(agent_app ${SOURCES} ${HEADERS})
+# 2. Target 1: Ứng dụng chính (Agent App)
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE HEADERS "src/*.h")
+if(NOT SOURCES)
+    set(SOURCES src/main.cpp)
+endif()
 
-# 5. Tích hợp CURL và nlohmann_json vào ứng dụng
-target_link_libraries(agent_app PRIVATE 
-    CURL::libcurl 
-    nlohmann_json::nlohmann_json
-)
+add_executable(agent_app ${SOURCES} ${HEADERS})
+target_link_libraries(agent_app PRIVATE CURL::libcurl nlohmann_json::nlohmann_json)
+
+# 3. Target 2: Unit Test
+add_executable(test_harness tests/test_harness.cpp)
+target_link_libraries(test_harness PRIVATE nlohmann_json::nlohmann_json)
