@@ -33,6 +33,7 @@ void testFunctionalEvaluator() {
 
     EvalResult res1 = evaluator.evaluate(task, "Kết quả tính được là 40.0005", traj);
     assert(res1.passed == true);
+    assert(res1.score == 1.0);
 
     EvalResult res2 = evaluator.evaluate(task, "Kết quả là 42.5", traj);
     assert(res2.passed == false);
@@ -51,14 +52,23 @@ void testRegexEvaluator() {
     EvalResult res1 = evaluator.evaluate(task, "Ngày tạo báo cáo: 2026-08-12", traj);
     assert(res1.passed == true);
 
+    EvalResult res2 = evaluator.evaluate(task, "Ngày tạo báo cáo: 12/08/2026", traj);
+    assert(res2.passed == false);
+
     cout << "[UNIT TEST PASSED] RegexEvaluator" << endl;
 }
 
 int main() {
-    cout << "CHẠY UNIT TESTS CHO HARNESS MODULE" << endl;
+    cout << "==========================================" << endl;
+    cout << "=== CHẠY UNIT TESTS CHO HARNESS MODULE ===" << endl;
+    cout << "==========================================" << endl;
+    
     testKeywordEvaluator();
     testFunctionalEvaluator();
     testRegexEvaluator();
-    cout << "UNIT TESTS ĐÃ THÀNH CÔNG" << endl;
+    
+    cout << "==========================================" << endl;
+    cout << "=== TẤT CẢ UNIT TESTS ĐÃ THÀNH CÔNG ===" << endl;
+    cout << "==========================================" << endl;
     return 0;
 }

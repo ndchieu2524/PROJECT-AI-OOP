@@ -1,32 +1,27 @@
 cmake_minimum_required(VERSION 3.14)
-project(AIAgentFramework CXX)
+project(PROJECT-AI-OOP CXX)
+
+if(POLICY CMP0135)
+    cmake_policy(SET CMP0135 NEW)
+endif()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 1. Tải thư viện nlohmann/json
 include(FetchContent)
 FetchContent_Declare(
     json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG v3.11.3
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(json)
 
-include_directories(src)
+file(GLOB HARNESS_SOURCES "src/harness/*.cpp")
 
-find_package(CURL REQUIRED)
+add_executable(agent_app src/main.cpp ${HARNESS_SOURCES})
+target_include_directories(agent_app PRIVATE src)
+target_link_libraries(agent_app PRIVATE nlohmann_json::nlohmann_json)
 
-# 2. Target 1: Ứng dụng chính (Agent App)
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-file(GLOB_RECURSE HEADERS "src/*.h")
-if(NOT SOURCES)
-    set(SOURCES src/main.cpp)
-endif()
-
-add_executable(agent_app ${SOURCES} ${HEADERS})
-target_link_libraries(agent_app PRIVATE CURL::libcurl nlohmann_json::nlohmann_json)
-
-# 3. Target 2: Unit Test
-add_executable(test_harness tests/test_harness.cpp)
+add_executable(test_harness tests/test_harness.cpp ${HARNESS_SOURCES})
+target_include_directories(test_harness PRIVATE src)
 target_link_libraries(test_harness PRIVATE nlohmann_json::nlohmann_json)
