@@ -1,39 +1,34 @@
+#include <iostream>
+#include <memory>
 #include <string>
-#include <format>
-#include <print>
-
-#include <curl/curl.h>
-
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
-
-#include "client/llm_client.h"
-#include "client/ollama_client.h"
+#include "harness/harness_runner.h"
+#include "harness/taskloader.h"
+#include "harness/mockagent.h"
 
 using namespace std;
-using namespace agent::llm;
 
-string LINK = "http://mhpgc-34-125-101-225.free.pinggy.net";
+int main(int argc, char* argv[]) {
+    string task_file = "tasks.json";
+    string report_file = "benchmark_report.json";
 
-int main() {
-    println("okay dude");
-    // OllamaClient client(LINK, Options({
-    //   .modelName = "gemma4:e4b"
-    // })); 
+    if (argc > 1) task_file = argv[1];
+    if (argc > 2) report_file = argv[2];
 
-    // vector<Message> messages;
-    
-    // messages.push_back(Message({
-    //   .role = "user",
-    //   .content = "what is 1 + 1"
-    // }));
+    cout << Color::CYAN << "[CẤU HÌNH HARNESS] File test: " << task_file << Color::RESET << endl;
 
-    // Response res = client.chat(messages);
+    vector<BenchmarkTask> tasks = TaskLoader::loadFromJsonFile(task_file);
+    if (tasks.empty()) {
+        cerr << Color::RED << "[LỖI] Không thể nạp bài test từ " << task_file << Color::RESET << endl;
+        return 1;
+    }
 
-    // println("Content: {}", res.content);
-    // println("Finish: {}", res.finish);
-    // println("Reason: {}", res.finishReason);
-    // println("Used tokens: ", res.usedTokens);
+    auto mockAgent = make_shared<MockAgent>();
+
+    HarnessRunner runner;
+    runner.setAgent(mockAgent);
+    runner.setTasks(tasks);
+
+    runner.runBenchmarkSuite(report_file);
 
     return 0;
 }
