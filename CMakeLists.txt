@@ -1,27 +1,46 @@
-cmake_minimum_required(VERSION 3.14)
-project(PROJECT-AI-OOP CXX)
-
-if(POLICY CMP0135)
-    cmake_policy(SET CMP0135 NEW)
-endif()
+cmake_minimum_required(VERSION 3.15)
+project(CppAgentProject CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
+
 FetchContent_Declare(
-    json
-    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  curl
+  GIT_REPOSITORY https://github.com/curl/curl.git
+  GIT_TAG        curl-8_21_0
+)
+set(BUILD_CURL_EXE OFF CACHE INTERNAL "")
+set(BUILD_TESTING OFF CACHE INTERNAL "")
+set(HTTP_ONLY ON CACHE INTERNAL "")
+set(CURL_USE_LIBPSL OFF CACHE INTERNAL "")
+FetchContent_MakeAvailable(curl)
+
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG        v3.12.0
 )
 FetchContent_MakeAvailable(json)
 
-file(GLOB HARNESS_SOURCES "src/harness/*.cpp")
+set(SOURCES
+    src/main.cpp
+    src/client/ollama_client.cpp
+    src/utils/http_client.cpp
+    src/agent/loop_detector.cpp
+    src/agent/skill_loader.cpp
+)
 
-add_executable(agent_app src/main.cpp ${HARNESS_SOURCES})
-target_include_directories(agent_app PRIVATE src)
-target_link_libraries(agent_app PRIVATE nlohmann_json::nlohmann_json)
+set(HEADERS
+    src/client/llm_client.h
+    src/client/ollama_client.h
+    src/utils/http_client.h
+    src/agent/loop_detector.h
+    src/agent/skill_loader.h
+)
 
-add_executable(test_harness tests/test_harness.cpp ${HARNESS_SOURCES})
-target_include_directories(test_harness PRIVATE src)
-target_link_libraries(test_harness PRIVATE nlohmann_json::nlohmann_json)
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+target_include_directories(${PROJECT_NAME} PRIVATE src)
+target_link_libraries(${PROJECT_NAME} PRIVATE libcurl nlohmann_json::nlohmann_json)
