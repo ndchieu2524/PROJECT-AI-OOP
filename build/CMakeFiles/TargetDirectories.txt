@@ -1,6 +1,0 @@
-/workspaces/codespaces-blank/tools/build/CMakeFiles/tool_system.dir
-/workspaces/codespaces-blank/tools/build/CMakeFiles/tool_system_demo.dir
-/workspaces/codespaces-blank/tools/build/CMakeFiles/edit_cache.dir
-/workspaces/codespaces-blank/tools/build/CMakeFiles/rebuild_cache.dir
-/workspaces/codespaces-blank/tools/build/_deps/json-build/CMakeFiles/edit_cache.dir
-/workspaces/codespaces-blank/tools/build/_deps/json-build/CMakeFiles/rebuild_cache.dir
