@@ -84,9 +84,22 @@ BenchmarkReport HarnessRunner::runBenchmarkSuite(const string& report_filepath) 
     for (size_t i = 0; i < tasks.size(); ++i) {
         const auto& task = tasks[i];
         cout << "\n" << Color::BOLD << "[ĐANG CHẠY] Task " << (i + 1) << "/" << tasks.size() 
-                  << " [" << task.id << "]: " << task.description << Color::RESET << endl;
+             << " [" << task.id << "]: " << task.description << Color::RESET << endl;
 
         Trajectory traj(task.id);
+
+        agent->set_step_hook([](const AgentStep& step) {
+            cout << "  " << Color::YELLOW << "↳ [Step " << step.step_number << "]" << Color::RESET
+                 << " Action: " << Color::BOLD << step.action_name << Color::RESET;
+            if (!step.action_args.empty() && step.action_args != "{}") {
+                cout << " (Args: " << step.action_args << ")";
+            }
+            cout << " | " << step.latency_ms << "ms\n";
+
+            if (!step.thought.empty()) {
+                cout << "     " << Color::CYAN << "Thought: " << Color::RESET << step.thought << "\n";
+            }
+        });
 
         auto future = async(launch::async, [&]() {
             return agent->run(task.description, traj);
@@ -141,6 +154,7 @@ BenchmarkReport HarnessRunner::runBenchmarkSuite(const string& report_filepath) 
     cout << " Thời gian Min / Max : " << report.min_latency_ms << " ms / " << report.max_latency_ms << " ms" << endl;
     cout << " Số bước ReAct trung bình: " << report.average_steps_per_task << " bước/task" << endl;
     cout << Color::CYAN << "==================================================\n" << Color::RESET << endl;
+    
     report.saveToJsonFile(report_filepath);
     report.saveToMarkdownFile("benchmark_report.md");
     return report;

@@ -8,6 +8,7 @@ namespace agent::llm {
     struct Message {
         std::string role;
         std::string content;
+        std::vector<std::string> images;
     };
 
     struct Options {
