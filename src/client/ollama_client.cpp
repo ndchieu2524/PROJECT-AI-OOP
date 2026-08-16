@@ -37,15 +37,20 @@ Response OllamaClient::chat(const vector<Message> &messages, const Options &opti
     json payload = { 
         {"model", choosedOptions.modelName},
         {"messages", compiledMessages},
-        {"stream", false}
+        {"stream", false},
+        {"options", {
+            {"temperature", options_.temperature}
+        }}
     };
 
     if (choosedOptions.temperature) {
-        payload["options.temperature"] = choosedOptions.temperature;
+        payload["options"]["temperature"] = choosedOptions.temperature;
+        // payload["options.temperature"] = choosedOptions.temperature;
     }
 
     if (choosedOptions.maxTokens) {
-        payload["options.num_predict"] = choosedOptions.maxTokens;
+        payload["options"]["num_predict"] = choosedOptions.maxTokens;
+        // payload["options.num_predict"] = choosedOptions.maxTokens;
     }
 
     const string postBody = payload.dump();
@@ -61,12 +66,26 @@ Response OllamaClient::chat(const vector<Message> &messages, const Options &opti
     }
 
     json parsedRes = json::parse(httpRes.result);
-    
+
+    string contentText = "";
+    if (parsedRes.contains("message") && parsedRes["message"].contains("content")) {
+        contentText = parsedRes["message"]["content"].get<string>();
+    }
+
+    string finishReason = parsedRes.value("done_reason", "stop");
+    bool finish = parsedRes.value("done", true);
+    int usedTokens = parsedRes.value("eval_count", 0);
+
     return Response({
-        .content = parsedRes["message"],
-        .finishReason = parsedRes["done_reason"],
-        .finish = parsedRes["done"],
-        .usedTokens = parsedRes["eval_count"],
+        // .content = parsedRes["message"],
+        // .finishReason = parsedRes["done_reason"],
+        // .finish = parsedRes["done"],
+        // .usedTokens = parsedRes["eval_count"],
+        // .rawJson = httpRes.result
+        .content = contentText,
+        .finishReason = finishReason,
+        .finish = finish,
+        .usedTokens = usedTokens,
         .rawJson = httpRes.result
     });
 }
