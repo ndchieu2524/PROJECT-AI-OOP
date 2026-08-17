@@ -47,22 +47,26 @@ Hệ thống áp dụng 4 mẫu thiết kế hướng đối tượng cốt lõi
 + libsqlite3-dev (Quản lý bộ nhớ lâu dài SQLite)
 + nlohmann/json (Tự động tải qua CMake FetchContent)
 
-- Cài đặt các gói phụ thuộc trên Ubuntu/Debian:
+```bash
+# Cài đặt các thư viện phụ thuộc
 sudo apt-get update
 sudo apt-get install -y build-essential cmake libcurl4-openssl-dev libsqlite3-dev
-
+```
 # 4. Cấu hình Ollama Backend
 
 Chạy Ollama cục bộ (Local Machine):
-## Cài đặt Ollama:
+```bash
+# Cài đặt Ollama:
 curl -fsSL https://ollama.com/install.sh | sh
-## Khởi chạy server và tải mô hình:
+# Khởi chạy server và tải mô hình:
 ollama serve
 ollama run qwen2.5:1.5b
+```
 
 # 5. Hướng dẫn biên dịch
 
 Dự án sử dụng CMake để quản lý quy trình build chuẩn hóa:
+```bash
 ## 1. Tạo và chuyển vào thư mục build
 mkdir -p build && cd build
 
@@ -71,56 +75,67 @@ cmake ..
 
 ## 3. Biên dịch chương trình
 cmake --build . -j$(nproc)
-
+```
 File thực thi được tạo tại: build/PROJECT_AI_OOP
 
 # 6. Hướng dẫn chạy chương trình & Benchmark
 
 ## 1. Chuẩn bị môi trường làm việc
-Trước khi chạy, đảm bảo thư mục workspace và skills đã sẵn sàng tại thư mục gốc:Bashmkdir -p workspace
+Trước khi chạy, đảm bảo thư mục workspace và skills đã sẵn sàng tại thư mục gốc:
+```bash
+Bashmkdir -p workspace
+```
 ## 2. Khởi chạy
-Từ thư mục gốc dự án, thực thi:Bash./build/PROJECT_AI_OOP
+Từ thư mục gốc dự án, thực thi:
+```bash
+./build/PROJECT_AI_OOP
+```
 ## 3. Kết quả đầu ra
 - Sau khi bộ Benchmark hoàn tất, các tệp vết hoạt động chi tiết được sinh tự động: 
-trajectory_task_001.json, trajectory_task_002.json, ...
-- Tệp báo cáo tổng hợp JSON: benchmark_report.json
-- Tệp báo cáo hiệu năng Markdown: benchmark_report.md7. 
+**trajectory_task_001.json, trajectory_task_002.json, ...**
+- Tệp báo cáo tổng hợp JSON: **benchmark_report.json**
+- Tệp báo cáo hiệu năng Markdown: **benchmark_report.md7**
 
 # 7. Cấu trúc thư mục:
 
-Agent_25127330_25127287_25127518
+```text
+Agent_25127330_25127287_25127518/
 ├── CMakeLists.txt              # Cấu hình biên dịch dự án
-├── README.md                   # Hướng dẫn cài đặt và sử dụng
-├── benchmark/
-│   └── tasks.json              # Tập dữ liệu kiểm thử (10 tasks phân hóa)
-├── skills/                     # Các tệp hướng dẫn kỹ năng cho Agent
+├── README.md                   # Hướng dẫn build, chạy và cấu hình Ollama
+├── src/
+│   ├── main.cpp                # Điểm khởi chạy chính
+│   ├── agent/
+│   │   ├── agent_loop.h/.cpp   # Triển khai vòng lặp ReAct
+│   │   ├── loop_detector.h/.cpp# Phát hiện chu kỳ lặp
+│   │   └── skill_loader.h/.cpp # Nạp và chọn lọc skill
+│   ├── client/
+│   │   ├── llm_client.h        # Interface trừu tượng LLMClient
+│   │   └── ollama_client.h/.cpp# Triển khai HTTP Client gọi Ollama API
+│   ├── tools/
+│   │   ├── tool.h              # Interface trừu tượng Tool
+│   │   ├── tool_registry.h/.cpp# Quản lý và dispatch Tool
+│   │   ├── exec_tool.h/.cpp    # Tool chạy lệnh shell
+│   │   ├── file_tool.h/.cpp    # Tool đọc/ghi file
+│   │   ├── calculator_tool.h/.cpp # Tool tính toán biểu thức
+│   │   ├── web_search_tool.h/.cpp # Tool tìm kiếm DuckDuckGo API
+│   │   └── memory_tool.h/.cpp  # Tool lưu/truy vấn SQLite
+│   └── harness/
+│       ├── i_agent.h           # Interface IAgent
+│       ├── harness_runner.h/.cpp # Điều phối chạy và xuất báo cáo
+│       ├── trajectory.h/.cpp   # Lưu vết từng bước thực thi
+│       └── evaluator.h/.cpp    # Chiến lược chấm điểm tự động
+├── skills/                     # Tập các file hướng dẫn kỹ năng (.md)
 │   ├── task_planner.md
 │   ├── error_recovery.md
 │   └── math_and_file_ops.md
-├── workspace/                  # Môi trường cách ly để FileTool thao tác
-└── src/
-    ├── main.cpp                # Điểm khởi chạy chính kết nối các tầng
-    ├── client/                 # Tầng giao tiếp mạng & mô hình LLM
-    │   ├── llm_client.h        # Interface trừu tượng LLMClient
-    │   └── ollama_client.h/.cpp# Triển khai HTTP Client gọi Ollama API
-    ├── tools/                  # Tầng công cụ thực thi
-    │   ├── tool.h              # Interface trừu tượng Tool
-    │   ├── tool_registry.h/.cpp# Quản lý và dispatch Tool
-    │   ├── exec_tool.h/.cpp    # Tool thực thi lệnh shell
-    │   ├── file_tool.h/.cpp    # Tool đọc/ghi file
-    │   ├── calculator_tool.h/.cpp # Tool tính toán biểu thức toán học
-    │   ├── web_search_tool.h/.cpp # Tool tìm kiếm DuckDuckGo API
-    │   └── memory_tool.h/.cpp  # Tool lưu trữ bộ nhớ SQLite
-    ├── agent/                  # Tầng lõi Agent & Kỹ năng
-    │   ├── agent_loop.h/.cpp   # Triển khai ReAct cycle
-    │   ├── loop_detector.h/.cpp# Phát hiện và ngắt chu kỳ lặp
-    │   └── skill_loader.h/.cpp # Nạp và chọn lọc skill tự động
-    └── harness/                # Tầng đo lường & Đánh giá
-        ├── i_agent.h           # Giao diện trừu tượng kết nối Harness
-        ├── trajectory.h/.cpp   # Cấu trúc lưu vết từng bước thực thi
-        ├── evaluator.h/.cpp    # Chiến lược đánh giá kết quả
-        ├── taskloader.h/.cpp   # Nạp dữ liệu benchmark từ JSON
-        └── harness_runner.h/.cpp # Điều phối chạy và xuất báo cáo
+├── benchmark/
+│   ├── tasks.json              # Tập dữ liệu kiểm thử (>= 10 tasks)
+│   └── run_eval.cpp
+├── tests/                      # Mã nguồn Unit Test
+└── docs/                       # Biểu đồ thiết kế (Mermaid/Images)
+    ├── class_diagram.png
+    ├── sequence_diagram_agent.png
+    └── component_diagram.png
 
 # 8. Danh sách thành viên và đóng góp
 
