@@ -45,12 +45,10 @@ Response OllamaClient::chat(const vector<Message> &messages, const Options &opti
 
     if (choosedOptions.temperature) {
         payload["options"]["temperature"] = choosedOptions.temperature;
-        // payload["options.temperature"] = choosedOptions.temperature;
     }
 
     if (choosedOptions.maxTokens) {
         payload["options"]["num_predict"] = choosedOptions.maxTokens;
-        // payload["options.num_predict"] = choosedOptions.maxTokens;
     }
 
     const string postBody = payload.dump();
@@ -77,11 +75,6 @@ Response OllamaClient::chat(const vector<Message> &messages, const Options &opti
     int usedTokens = parsedRes.value("eval_count", 0);
 
     return Response({
-        // .content = parsedRes["message"],
-        // .finishReason = parsedRes["done_reason"],
-        // .finish = parsedRes["done"],
-        // .usedTokens = parsedRes["eval_count"],
-        // .rawJson = httpRes.result
         .content = contentText,
         .finishReason = finishReason,
         .finish = finish,
