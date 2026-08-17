@@ -138,4 +138,4 @@ Agent_25127330_25127287_25127518/
 | :---: | :--- | :---: | :--- |
 | 1 | Nguyễn Đoàn Công Hiếu | 25127330 | Tầng Tool Registry (5 Tools), Skill Loader |
 | 2 | Phạm Tiến Cường | 25127287 | Tầng LLM Client, Agent Loop, Loop Detector |
-| 3 | Nguyễn Anh Quang Tiến | 25127287 | Tầng Harness Runner, Trajectory, Evaluators & Benchmark |
+| 3 | Nguyễn Anh Quang Tiến | 25127518 | Tầng Harness Runner, Trajectory, Evaluators & Benchmark |
