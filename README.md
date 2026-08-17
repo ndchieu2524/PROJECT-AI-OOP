@@ -132,7 +132,7 @@ Agent_25127330_25127287_25127518/
     ├── sequence_diagram_agent.png
     └── component_diagram.png
 ```
-# 8. Danh sách thành viên và đóng góp
+# 8. Danh sách thành viên & Đóng góp
 
 | STT | Tên thành viên | MSSV | Vai trò |
 | :---: | :--- | :---: | :--- |
