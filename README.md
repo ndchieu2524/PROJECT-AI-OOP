@@ -1,17 +1,22 @@
 ### C++ AI Agent Framework with Ollama API
 Một hệ thống AI Agent hoàn chỉnh được viết bằng C++23, kết nối với backend suy luận cục bộ Ollama thông qua kiến trúc phân lớp hướng đối tượng: Client – Tool – Skill – Agent Loop – Harness – Evaluator.
+# Danh sách thành viên & Đóng góp
+
+| STT | Tên thành viên | MSSV | Vai trò |
+| :---: | :--- | :---: | :--- |
+| 1 | Nguyễn Đoàn Công Hiếu | 25127330 | Tầng Tool Registry (5 Tools), Skill Loader |
+| 2 | Phạm Tiến Cường | 25127287 | Tầng LLM Client, Agent Loop, Loop Detector |
+| 3 | Nguyễn Anh Quang Tiến | 25127518 | Tầng Harness Runner, Trajectory, Evaluators & Benchmark |
 
 # Mục lục
 - [1. Giới thiệu tổng quan](#1-giới-thiệu-tổng-quan)
 - [2. Kiến trúc & Design Patterns](#2-kiến-trúc--design-patterns)
 - [3. Yêu cầu môi trường](#3-yêu-cầu-môi-trường)
 - [4. Cấu hình Ollama Backend](#4-cấu-hình-ollama-backend)
-  - [Cách 1: Chạy Ollama cục bộ](#cách-1-chạy-ollama-cục-bộ)
-  - [Cách 2: Sử dụng Google Colab / GPU Cloud](#cách-2-sử-dụng-google-colab--gpu-cloud)
+  - [Chạy Ollama cục bộ](#chạy-ollama-cục-bộ)
 - [5. Hướng dẫn biên dịch](#5-hướng-dẫn-biên-dịch)
 - [6. Hướng dẫn chạy chương trình & Benchmark](#6-hướng-dẫn-chạy-chương-trình--benchmark)
 - [7. Cấu trúc thư mục](#7-cấu-trúc-thư-mục)
-- [8. Danh sách thành viên & Đóng góp](#8-danh-sách-thành-viên--đóng-góp)
 
 
 # 1. Giới thiệu tổng quan
@@ -132,10 +137,3 @@ Agent_25127330_25127287_25127518/
     ├── sequence_diagram_agent.png
     └── component_diagram.png
 ```
-# 8. Danh sách thành viên & Đóng góp
-
-| STT | Tên thành viên | MSSV | Vai trò |
-| :---: | :--- | :---: | :--- |
-| 1 | Nguyễn Đoàn Công Hiếu | 25127330 | Tầng Tool Registry (5 Tools), Skill Loader |
-| 2 | Phạm Tiến Cường | 25127287 | Tầng LLM Client, Agent Loop, Loop Detector |
-| 3 | Nguyễn Anh Quang Tiến | 25127518 | Tầng Harness Runner, Trajectory, Evaluators & Benchmark |
